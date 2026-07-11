@@ -1,0 +1,12 @@
+base_voices/*
+!base_voices/.gitkeep
+outputs/*
+!outputs/.gitkeep
+hf_cache/
+data/*
+!data/.gitkeep
+venv/
+__pycache__/
+*.pyc
+.env
+.git

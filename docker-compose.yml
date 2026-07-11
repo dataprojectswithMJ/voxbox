@@ -1,0 +1,19 @@
+services:
+  voxbox:
+    build: .
+    ports:
+      - "8080:8080"
+    volumes:
+      # Persist base voices and generated outputs outside the container so they survive rebuilds
+      - ./base_voices:/app/base_voices
+      - ./outputs:/app/outputs
+      # Persist the Hugging Face model cache so Chatterbox weights aren't re-downloaded on every rebuild/restart
+      - ./hf_cache:/root/.cache/huggingface
+      # Live-mount frontend so static edits show up without an image rebuild
+      - ./static:/app/static
+      # Persist rentals (consent/screening records) outside the container
+      - ./data:/app/data
+    environment:
+      - FIREWORKS_API_KEY=${FIREWORKS_API_KEY:-}
+      - SCREENING_MODEL_ID=${SCREENING_MODEL_ID:-}
+    restart: unless-stopped
