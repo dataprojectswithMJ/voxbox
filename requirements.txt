@@ -6,3 +6,4 @@ torch
 torchaudio
 setuptools<81
 httpx
+jinja2
