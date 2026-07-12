@@ -48,11 +48,3 @@ screening and human approval standing between "submit a script" and "audio gets 
 cp .env.example .env   # add your FIREWORKS_API_KEY and SCREENING_MODEL_ID
 podman-compose up -d --build
 ```
-
-The app is served at `http://localhost:8080`. Demo accounts use a shared password: `123456`.
-
-## Known gaps
-
-- Auth is a demo persona-picker with a shared password — no real account system.
-- No payment processor — generation fees are tracked as an internal ledger number only.
-- Single environment, single audio quality tier, no localization.
