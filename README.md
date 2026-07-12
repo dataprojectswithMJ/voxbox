@@ -16,7 +16,7 @@ screening and human approval standing between "submit a script" and "audio gets 
 
 <!-- Drop sample .wav/.mp3 files into docs/audio/ — GitHub renders an inline player for direct links to audio files -->
 
-- [Warm narrator — sample](docs/audio/sample-warm-narrator.wav)
+- [Warm narrator — sample](docs/audio/sample_warm_narrator.wav)
 
 ## How it works
 
