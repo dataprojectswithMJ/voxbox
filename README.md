@@ -10,7 +10,7 @@ screening and human approval standing between "submit a script" and "audio gets 
 
 ![Marketplace](docs/screenshots/marketplace.png)
 ![Actor dashboard](docs/screenshots/dashboard.png)
-![Approvals queue](docs/screenshots/approvals.png)
+![Approvals queue](docs/screenshots/approval.png)
 
 ## Audio samples
 
