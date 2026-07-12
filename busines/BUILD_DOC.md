@@ -71,9 +71,9 @@ The riskiest unknown in this whole project is **not** the business logic — it'
 | Real payment processing (Stripe, etc.) | The ledger numbers prove the model works; wiring real money moves zero points and burns hours |
 | Real user auth / OAuth / password reset | Mock personas demonstrate the flow just as well |
 | Multi-GPU / horizontal scaling | One MI300X, one demo audience. Note it as a production roadmap item instead |
-| Real liveness/anti-deepfake detection | Full spoof-detection is a research problem. A server-issued phrase + nonce is a reasonable MVP signal — say so honestly in your pitch rather than overclaiming |
-| Multi-language TTS | Stick to Chatterbox/English unless there's slack time on day 2. Mention Qwen3-TTS multilingual support as roadmap, don't build it under time pressure |
-| Email/SMS notifications | An in-app pending queue the actor checks is enough for a demo |
+| Real liveness/anti-deepfake detection | Full spoof-detection is a research problem. A server-issued phrase + nonce is a reasonable MVP signal |
+| Multi-language TTS | Stick to Chatterbox/English unless there's slack time on day 2. Qwen3 TTS to be implemented when we have the need for multilingal use or chatterbox quality sucks |
+| Email/SMS notifications | Performance summaries or approval requests |
 | Admin analytics dashboard | The daily report endpoint returning readable JSON/text is enough — don't build charts nobody asked for |
 | A real cron scheduler | A button that triggers report generation on demand works fine live |
 
@@ -114,15 +114,3 @@ consentic/
 - `pip install fastapi uvicorn python-multipart sqlmodel chatterbox-tts httpx`
 - One `Dockerfile` (single stage is fine — this doesn't need multi-stage optimization for a hackathon submission, just needs to build and run)
 
----
-
-## 7. Demo script (once built)
-
-1. Record a voice live against an issued phrase, set conditions, set a price.
-2. Submit a clean script as a renter → watch it auto-approve and render.
-3. Submit a script that trips an undeclared flag → show it land in the actor's review queue → approve it live.
-4. Show the vault row for both — same data, different `decided_by`.
-5. Show the ledger split.
-6. Trigger the daily report, show Gemma's summary of usage patterns.
-
-That's the whole story, and it's the whole app. Nothing in this doc exists that isn't on that list.
