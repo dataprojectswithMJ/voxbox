@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import torchaudio
 
-from app import accounts, auth, phrases, screening, store, tts
+from app import accounts, auth, phrases, screening, store, stt, tts
 from app.db import init_db
 
 app = FastAPI(title="VoxBox")
@@ -30,6 +30,7 @@ def startup() -> None:
     init_db()
     accounts.seed_demo_users()
     tts.load_model()
+    stt.load_model()
 
 
 @app.get("/api/phrase")
@@ -111,6 +112,11 @@ async def create_voice(
     if result.returncode != 0 or not wav_path.exists():
         raise HTTPException(500, f"Audio conversion failed: {result.stderr[-500:]}")
 
+    ok, _ratio = stt.matches_phrase(str(wav_path), pending["phrase"])
+    if not ok:
+        wav_path.unlink(missing_ok=True)
+        raise HTTPException(400, "Recording doesn't match the challenge phrase. Please try again.")
+
     entry = {
         "id": voice_id,
         "label": label or pending["phrase"],
@@ -120,6 +126,7 @@ async def create_voice(
         "owner_persona_name": auth.persona_name(owner_persona_id),
         "consent_conditions": conditions,
         "price_per_100_words": price_per_100_words,
+        "visible": True,
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     store.add_voice(entry)
@@ -131,9 +138,20 @@ def list_voices():
     return store.list_voices()
 
 
+@app.patch("/api/voices/{voice_id}/visibility")
+def set_voice_visibility(voice_id: str, owner_persona_id: str = Form(...), visible: bool = Form(...)):
+    """Toggles marketplace listing only — doesn't affect existing renters' access to generate."""
+    voice = store.get_voice(voice_id)
+    if voice is None:
+        raise HTTPException(404, "Voice not found")
+    if voice.get("owner_persona_id") != owner_persona_id:
+        raise HTTPException(403, "Only the voice's owner can change its visibility")
+    return store.update_voice(voice_id, visible=visible)
+
+
 @app.get("/api/marketplace")
 def marketplace(renter_persona_id: str | None = None):
-    voices = store.list_voices()
+    voices = [v for v in store.list_voices() if v.get("visible", True)]
     rented_ids = {a["voice_id"] for a in store.list_access(renter_persona_id=renter_persona_id)} if renter_persona_id else set()
     for v in voices:
         v["is_rented"] = v["id"] in rented_ids
@@ -418,6 +436,29 @@ async def decide_rental(
         decided_at=now,
         output_id=output["id"],
     )
+
+
+@app.get("/api/history")
+def history(user_id: str):
+    """Every account can act as both actor and renter, so this returns both halves:
+    decisions on scripts submitted to voices this account owns, and every script
+    this account has generated (with its output audio joined in, if any)."""
+    rentals = store.list_rentals()
+    outputs_by_id = {o["id"]: o for o in store.list_outputs()}
+
+    as_actor = [r for r in rentals if r.get("owner_persona_id") == user_id]
+    as_renter = []
+    for r in rentals:
+        if r.get("renter_persona_id") != user_id:
+            continue
+        entry = dict(r)
+        output = outputs_by_id.get(r.get("output_id"))
+        entry["output_filename"] = output["filename"] if output else None
+        as_renter.append(entry)
+
+    as_actor.sort(key=lambda r: r["created_at"], reverse=True)
+    as_renter.sort(key=lambda r: r["created_at"], reverse=True)
+    return {"as_actor": as_actor, "as_renter": as_renter}
 
 
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
