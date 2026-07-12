@@ -1,0 +1,20 @@
+<div style="background:#E8E6DA;padding:2.5rem 1rem;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;">
+  <table role="presentation" width="100%" style="max-width:480px;margin:0 auto;border-collapse:collapse;">
+    <tr>
+      <td style="background:#F4F2E7;border:1px solid #C9C5AF;border-radius:4px;padding:2.5rem;">
+        <div style="font-family:ui-monospace,'SF Mono','Cascadia Code','Roboto Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#A9741C;margin-bottom:1.25rem;">
+          VOXBOX &middot; {{ eyebrow }}
+        </div>
+        <h1 style="font-family:'Iowan Old Style','Palatino Linotype','Book Antiqua',Georgia,serif;font-weight:400;font-size:28px;line-height:1.15;color:#1B211C;margin:0 0 1rem;">
+          {{ heading }}
+        </h1>
+        {% block content %}{% endblock %}
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:1.25rem 0.5rem 0;text-align:center;font-family:ui-monospace,'SF Mono','Cascadia Code','Roboto Mono',monospace;font-size:11px;color:#8B8B78;">
+        {% block footer %}This email was sent by VoxBox.{% endblock %}
+      </td>
+    </tr>
+  </table>
+</div>

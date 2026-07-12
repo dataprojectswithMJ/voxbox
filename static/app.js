@@ -19,7 +19,6 @@ const NAV = {
 };
 
 const state = {
-  role: "actor",
   persona: JSON.parse(localStorage.getItem("voxbox_persona") || "null"),
   nonce: null,
   phrase: null,
@@ -83,64 +82,130 @@ document.addEventListener("click", (e) => {
 
 /* ---------------- LOGIN ---------------- */
 
-async function loadShowcaseSamples() {
+const PREVIEW_WORD_LIMIT = 10;
+const PREVIEW_DEVICE_LIMIT = 2;
+
+function getDeviceId() {
+  let id = localStorage.getItem("voxbox_device_id");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("voxbox_device_id", id);
+  }
+  return id;
+}
+
+function previewUsesLeft() {
+  const used = Number(localStorage.getItem("voxbox_preview_uses") || "0");
+  return Math.max(0, PREVIEW_DEVICE_LIMIT - used);
+}
+
+function recordPreviewUseLocally() {
+  const used = Number(localStorage.getItem("voxbox_preview_uses") || "0");
+  localStorage.setItem("voxbox_preview_uses", String(used + 1));
+}
+
+function loadShowcaseSamples() {
+  updatePreviewUsesLabel();
+}
+
+function updatePreviewUsesLabel() {
+  const left = previewUsesLeft();
+  $("preview-uses-left").textContent = left > 0 ? `${left} tries left` : "No tries left";
+  $("preview-generate-btn").disabled = left <= 0;
+}
+
+$("preview-text").addEventListener("input", () => {
+  const words = $("preview-text").value.trim().split(/\s+/).filter(Boolean);
+  $("preview-word-count").textContent = `${words.length} / ${PREVIEW_WORD_LIMIT} words`;
+});
+
+$("preview-generate-btn").addEventListener("click", async () => {
+  const text = $("preview-text").value.trim();
+  const voiceId = $("preview-voice-select").value;
+  $("preview-denied").textContent = "";
+  $("preview-result-audio").style.display = "none";
+
+  if (!text) { $("preview-denied").textContent = "Enter a script first."; return; }
+  const words = text.split(/\s+/).filter(Boolean);
+  if (words.length > PREVIEW_WORD_LIMIT) { $("preview-denied").textContent = `${PREVIEW_WORD_LIMIT} words max.`; return; }
+  if (previewUsesLeft() <= 0) { $("preview-denied").textContent = "Preview limit reached — sign up to keep generating."; return; }
+  if (!voiceId) { $("preview-denied").textContent = "No voices available to try right now."; return; }
+
+  $("preview-generate-btn").disabled = true;
+  $("preview-generate-btn").textContent = "Generating…";
   try {
-    const res = await fetch("/api/marketplace");
-    const voices = await res.json();
-    const box = $("showcase-samples");
-    if (!voices.length) {
-      box.innerHTML = '<p class="meta">No voices published yet.</p>';
+    const form = new FormData();
+    form.append("text", text);
+    form.append("voice_id", voiceId);
+    form.append("device_id", getDeviceId());
+    const res = await fetch("/api/public/preview", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Preview failed");
+    if (data.denied) {
+      $("preview-denied").textContent = "Denied — this script doesn't meet content guidelines.";
       return;
     }
-    box.innerHTML = voices.slice(0, 3).map((v) => `
-      <div class="sample-card">
-        <div class="avatar">${escapeHtml(initials(v.owner_persona_name))}</div>
-        <div class="sample-body">
-          <div class="sample-name">${escapeHtml(v.label)}</div>
-          <div class="sample-meta">by ${escapeHtml(v.owner_persona_name || "—")} · $${Number(v.price_per_100_words || 0).toFixed(2)}/100 words</div>
-          <audio controls src="/api/base_voices/${v.filename}"></audio>
-        </div>
-      </div>
-    `).join("");
-  } catch {
-    $("showcase-samples").innerHTML = '<p class="meta">Samples unavailable right now.</p>';
+    recordPreviewUseLocally();
+    updatePreviewUsesLabel();
+    const audio = $("preview-result-audio");
+    audio.src = `/api/outputs/${data.filename}`;
+    audio.style.display = "";
+    audio.play();
+  } catch (err) {
+    $("preview-denied").textContent = err.message;
+  } finally {
+    $("preview-generate-btn").textContent = "Generate";
+    $("preview-generate-btn").disabled = previewUsesLeft() <= 0;
   }
-}
+});
 
-async function loadLoginPersonas() {
-  const res = await fetch(`/api/personas?role=${state.role}`);
-  const personas = await res.json();
-  const select = $("login-persona");
-  select.innerHTML = personas.map((p) => `<option value="${p.id}">${escapeHtml(p.name)}</option>`).join("");
-}
-
-document.querySelectorAll(".role-tab").forEach((btn) => {
+document.querySelectorAll(".account-tab").forEach((btn) => {
   btn.addEventListener("click", () => {
-    document.querySelectorAll(".role-tab").forEach((b) => b.classList.remove("active"));
+    document.querySelectorAll(".account-tab").forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-    state.role = btn.dataset.role;
-    $("login-progress-bar").style.width = "55%";
-    $("login-progress-label").textContent = "Step 2 of 2";
-    loadLoginPersonas();
+    const mode = btn.dataset.accountMode;
+    $("account-signin-form").style.display = mode === "signin" ? "" : "none";
+    $("account-signup-form").style.display = mode === "signup" ? "" : "none";
   });
 });
 
-$("login-form").addEventListener("submit", async (e) => {
+$("account-signin-form").addEventListener("submit", async (e) => {
   e.preventDefault();
-  $("login-error").textContent = "";
+  $("account-signin-error").textContent = "";
   const form = new FormData();
-  form.append("persona_id", $("login-persona").value);
-  form.append("password", $("login-password").value);
-  form.append("role", state.role);
+  form.append("email", $("account-signin-email").value);
+  form.append("password", $("account-signin-password").value);
   try {
-    const res = await fetch("/api/login", { method: "POST", body: form });
-    if (!res.ok) throw new Error((await res.json()).detail || "Login failed");
-    const persona = await res.json();
-    state.persona = persona;
-    localStorage.setItem("voxbox_persona", JSON.stringify(persona));
+    const res = await fetch("/api/auth/login", { method: "POST", body: form });
+    if (!res.ok) throw new Error((await res.json()).detail || "Sign in failed");
+    const user = await res.json();
+    state.persona = {
+      id: user.id,
+      name: user.name || user.email.split("@")[0],
+      role: user.role || "renter",
+    };
+    localStorage.setItem("voxbox_persona", JSON.stringify(state.persona));
     enterApp();
   } catch (err) {
-    $("login-error").textContent = err.message;
+    $("account-signin-error").textContent = err.message;
+  }
+});
+
+$("account-signup-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  $("account-signup-error").textContent = "";
+  $("account-signup-success").textContent = "";
+  const form = new FormData();
+  form.append("email", $("account-signup-email").value);
+  form.append("password", $("account-signup-password").value);
+  try {
+    const res = await fetch("/api/auth/signup", { method: "POST", body: form });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Sign up failed");
+    $("account-signup-success").textContent = data.message || "Check your email to verify your account.";
+    $("account-signup-form").reset();
+  } catch (err) {
+    $("account-signup-error").textContent = err.message;
   }
 });
 
@@ -731,8 +796,17 @@ $("redo-recording-btn").addEventListener("click", redoRecording);
 $("save-voice-btn").addEventListener("click", saveVoice);
 $("submit-rental-btn").addEventListener("click", submitRental);
 
-loadLoginPersonas();
 loadShowcaseSamples();
 if (state.persona) {
   enterApp();
+}
+
+const verifyStatus = new URLSearchParams(window.location.search).get("verify");
+if (verifyStatus) {
+  if (verifyStatus === "verified") {
+    toast("Email verified — you can sign in now.", "success");
+  } else {
+    toast("That verification link is invalid or expired.", "danger");
+  }
+  window.history.replaceState({}, "", window.location.pathname);
 }

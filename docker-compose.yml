@@ -16,4 +16,7 @@ services:
     environment:
       - FIREWORKS_API_KEY=${FIREWORKS_API_KEY:-}
       - SCREENING_MODEL_ID=${SCREENING_MODEL_ID:-}
+      - RESEND_API_KEY=${RESEND_API_KEY:-}
+      - RESEND_FROM_EMAIL=${RESEND_FROM_EMAIL:-VoxBox <onboarding@resend.dev>}
+      - APP_BASE_URL=${APP_BASE_URL:-http://localhost:8080}
     restart: unless-stopped

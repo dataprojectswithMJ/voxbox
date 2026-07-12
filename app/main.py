@@ -7,11 +7,12 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 import torchaudio
 
-from app import auth, phrases, screening, store, tts
+from app import accounts, auth, phrases, screening, store, tts
+from app.db import init_db
 
 app = FastAPI(title="VoxBox")
 
@@ -26,6 +27,8 @@ def startup() -> None:
     BASE_VOICES_DIR.mkdir(exist_ok=True)
     OUTPUTS_DIR.mkdir(exist_ok=True)
     store.DATA_DIR.mkdir(exist_ok=True)
+    init_db()
+    accounts.seed_demo_users()
     tts.load_model()
 
 
@@ -40,21 +43,27 @@ def get_phrase():
     return {"nonce": nonce, "phrase": phrase}
 
 
-@app.get("/api/personas")
-def list_personas(role: str | None = None):
-    return auth.personas_for_role(role) if role else auth.PERSONAS
+@app.post("/api/auth/signup")
+def signup(email: str = Form(...), password: str = Form(...)):
+    try:
+        user = accounts.signup(email, password)
+    except accounts.AccountError as exc:
+        raise HTTPException(400, str(exc))
+    return {"id": user["id"], "email": user["email"], "message": "Check your email to verify your account"}
 
 
-@app.post("/api/login")
-def login(
-    persona_id: str = Form(...),
-    password: str = Form(...),
-    role: str = Form(...),
-):
-    persona = auth.login(persona_id, password, role)
-    if persona is None:
-        raise HTTPException(401, "Invalid persona, role, or password")
-    return persona
+@app.get("/api/auth/verify")
+def verify_email(token: str):
+    status = "verified" if accounts.verify_email(token) else "invalid"
+    return RedirectResponse(url=f"/?verify={status}")
+
+
+@app.post("/api/auth/login")
+def account_login(email: str = Form(...), password: str = Form(...)):
+    try:
+        return accounts.login(email, password)
+    except accounts.AccountError as exc:
+        raise HTTPException(401, str(exc))
 
 
 @app.get("/api/consent-conditions")
@@ -259,6 +268,39 @@ async def generate(voice_id: str = Form(...), text: str = Form(...), owner_perso
         return await _run_generation(voice, text)
     except Exception as exc:
         raise HTTPException(500, f"Generation failed: {exc}") from exc
+
+
+PREVIEW_WORD_LIMIT = 10
+PREVIEW_DEVICE_LIMIT = 2
+_PREVIEW_DENY_FLAGS = {"hate_violence", "adult"}
+
+
+@app.post("/api/public/preview")
+async def public_preview(
+    text: str = Form(...),
+    voice_id: str = Form(...),
+    device_id: str = Form(...),
+):
+    """Unauthenticated try-before-you-sign-up generation, capped by word count and device."""
+    text = text.strip()
+    if not text:
+        raise HTTPException(400, "Enter a script")
+    if len(text.split()) > PREVIEW_WORD_LIMIT:
+        raise HTTPException(400, f"{PREVIEW_WORD_LIMIT} words max")
+    if store.get_preview_count(device_id) >= PREVIEW_DEVICE_LIMIT:
+        raise HTTPException(429, "Preview limit reached — sign up to keep generating")
+
+    voice = store.get_voice(voice_id)
+    if voice is None:
+        raise HTTPException(404, "Voice not found")
+
+    result = screening.screen_script(text, [])
+    if any(f in _PREVIEW_DENY_FLAGS for f in result["flags"]):
+        return {"denied": True, "flags": result["flags"]}
+
+    store.record_preview_use(device_id)
+    output = await _run_generation(voice, text)
+    return {"denied": False, "output_id": output["id"], "filename": output["filename"]}
 
 
 @app.get("/api/outputs")

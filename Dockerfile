@@ -10,7 +10,7 @@ WORKDIR /app
 
 COPY requirements.txt ./
 ENV PIP_DEFAULT_TIMEOUT=120
-RUN pip install --no-cache-dir --retries 10 -r requirements.txt
+RUN pip install --retries 10 -r requirements.txt
 
 COPY app ./app
 COPY static ./static

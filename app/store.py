@@ -11,6 +11,7 @@ OUTPUTS_INDEX = OUTPUTS_DIR / "index.json"
 RENTALS_INDEX = DATA_DIR / "rentals.json"
 ACCESS_INDEX = DATA_DIR / "voice_access.json"
 LEDGER_INDEX = DATA_DIR / "ledger.json"
+PREVIEW_INDEX = DATA_DIR / "preview_usage.json"
 
 _lock = threading.Lock()
 
@@ -126,3 +127,14 @@ def list_ledger(owner_persona_id: str | None = None, voice_id: str | None = None
     if voice_id is not None:
         items = [e for e in items if e["voice_id"] == voice_id]
     return items
+
+
+def get_preview_count(device_id: str) -> int:
+    return _read(PREVIEW_INDEX).count(device_id)
+
+
+def record_preview_use(device_id: str) -> None:
+    with _lock:
+        items = _read(PREVIEW_INDEX)
+        items.append(device_id)
+        _write(PREVIEW_INDEX, items)

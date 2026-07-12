@@ -13,10 +13,24 @@
     <div class="login-showcase">
       <div class="showcase-copy">
         <h1>Voices, on your terms.</h1>
-        <p>Every voice on VoxBox is published with explicit, software-enforced consent. Listen before you sign in.</p>
+        <p>Every voice on VoxBox is published with explicit, software-enforced consent. Try a short line before you sign in.</p>
       </div>
-      <div id="showcase-samples" class="showcase-samples">
-        <div class="skeleton"></div>
+      <div class="preview-box">
+        <label for="preview-text">Try a script (10 words max)</label>
+        <textarea id="preview-text" rows="2" maxlength="200" placeholder="e.g. Welcome to the future of voice."></textarea>
+        <div class="cost-estimate">
+          <span class="cost-note" id="preview-word-count">0 / 10 words</span>
+          <span class="cost-note" id="preview-uses-left">2 tries left</span>
+        </div>
+        <label for="preview-voice-select">Voice</label>
+        <select id="preview-voice-select">
+          <option value="411b6969-d89c-4a55-a4ed-f3f5457e04ce">warm narrator</option>
+          <option value="91d25681-32f8-4737-bcad-777712612c17">test voice2</option>
+          <option value="54115059-030d-48ec-b39e-abb390668765">demo voice</option>
+        </select>
+        <button id="preview-generate-btn" class="primary block" style="margin-top: var(--sp-3)">Generate</button>
+        <p id="preview-denied" class="error"></p>
+        <audio id="preview-result-audio" controls style="display:none; width:100%; margin-top: var(--sp-3)"></audio>
       </div>
     </div>
 
@@ -30,24 +44,29 @@
           </div>
         </div>
 
-        <div class="progress-hint">
-          <div class="bar"><span id="login-progress-bar"></span></div>
-          <span class="label" id="login-progress-label">Step 1 of 2</span>
-        </div>
-
         <div class="role-tabs">
-          <button class="role-tab active" data-role="actor">I'm a Voice Actor</button>
-          <button class="role-tab" data-role="renter">I'm a Renter</button>
+          <button class="role-tab active account-tab" data-account-mode="signin">Sign in</button>
+          <button class="role-tab account-tab" data-account-mode="signup">Sign up</button>
         </div>
 
-        <form id="login-form" class="login-card">
-          <label for="login-persona">Account</label>
-          <select id="login-persona"></select>
-          <label for="login-password">Password</label>
-          <input id="login-password" type="password" value="123456" />
-          <p class="meta">Demo auth — password is always <code>123456</code>.</p>
+        <form id="account-signin-form" class="login-card">
+          <label for="account-signin-email">Email</label>
+          <input id="account-signin-email" type="email" required />
+          <label for="account-signin-password">Password</label>
+          <input id="account-signin-password" type="password" required />
           <button type="submit" class="primary block">Sign in</button>
-          <p id="login-error" class="error"></p>
+          <p id="account-signin-error" class="error"></p>
+        </form>
+
+        <form id="account-signup-form" class="login-card" style="display:none">
+          <label for="account-signup-email">Email</label>
+          <input id="account-signup-email" type="email" required />
+          <label for="account-signup-password">Password</label>
+          <input id="account-signup-password" type="password" required minlength="8" />
+          <p class="meta">At least 8 characters, including one letter.</p>
+          <button type="submit" class="primary block">Create account</button>
+          <p id="account-signup-error" class="error"></p>
+          <p id="account-signup-success" class="meta"></p>
         </form>
       </div>
     </div>

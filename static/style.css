@@ -149,7 +149,7 @@ label {
   text-transform: uppercase;
 }
 
-input[type="text"], input[type="password"], input[type="number"], select, textarea {
+input[type="text"], input[type="password"], input[type="number"], input[type="email"], select, textarea {
   width: 100%;
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -206,6 +206,15 @@ textarea { resize: vertical; }
   flex-direction: column;
   gap: var(--sp-3);
 }
+
+.preview-box {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--r-md);
+  padding: var(--sp-4);
+  box-shadow: var(--shadow-sm);
+}
+.preview-box label { margin-top: 0; }
 
 .sample-card {
   background: var(--surface);
@@ -298,16 +307,6 @@ textarea { resize: vertical; }
   gap: var(--sp-1);
   box-shadow: var(--shadow-md);
 }
-
-.progress-hint {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-2);
-  margin-bottom: var(--sp-4);
-}
-.progress-hint .bar { flex: 1; height: 4px; background: var(--border); border-radius: var(--r-full); overflow: hidden; }
-.progress-hint .bar span { display: block; height: 100%; width: 20%; background: var(--gradient-primary); }
-.progress-hint .label { font-size: var(--fs-xs); color: var(--text-faint); white-space: nowrap; }
 
 /* ---- App shell: sidebar + content ---- */
 #view-app { display: flex; min-height: 100vh; }
