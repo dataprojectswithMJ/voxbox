@@ -10,146 +10,220 @@
 
   <!-- LOGIN -->
   <div id="view-login" class="view">
-    <div class="login-shell">
-      <div class="brand">
-        <div class="brand-mark">V</div>
-        <div>
-          <h1>VoxBox</h1>
-          <p class="subtitle">Consent-first voice cloning marketplace</p>
+    <div class="login-showcase">
+      <div class="showcase-copy">
+        <h1>Voices, on your terms.</h1>
+        <p>Every voice on VoxBox is published with explicit, software-enforced consent. Listen before you sign in.</p>
+      </div>
+      <div id="showcase-samples" class="showcase-samples">
+        <div class="skeleton"></div>
+      </div>
+    </div>
+
+    <div class="login-panel">
+      <div class="login-shell">
+        <div class="brand">
+          <div class="brand-mark">V</div>
+          <div>
+            <h1>VoxBox</h1>
+            <p class="subtitle">Consent-first voice cloning marketplace</p>
+          </div>
         </div>
-      </div>
 
-      <div class="role-tabs">
-        <button class="role-tab active" data-role="actor">I'm a Voice Actor</button>
-        <button class="role-tab" data-role="renter">I'm a Renter</button>
-      </div>
+        <div class="progress-hint">
+          <div class="bar"><span id="login-progress-bar"></span></div>
+          <span class="label" id="login-progress-label">Step 1 of 2</span>
+        </div>
 
-      <form id="login-form" class="login-card">
-        <label for="login-persona">Account</label>
-        <select id="login-persona"></select>
-        <label for="login-password">Password</label>
-        <input id="login-password" type="password" value="123456" />
-        <p class="meta">Demo auth — password is always <code>123456</code>.</p>
-        <button type="submit" class="primary block">Sign in</button>
-        <p id="login-error" class="error"></p>
-      </form>
+        <div class="role-tabs">
+          <button class="role-tab active" data-role="actor">I'm a Voice Actor</button>
+          <button class="role-tab" data-role="renter">I'm a Renter</button>
+        </div>
+
+        <form id="login-form" class="login-card">
+          <label for="login-persona">Account</label>
+          <select id="login-persona"></select>
+          <label for="login-password">Password</label>
+          <input id="login-password" type="password" value="123456" />
+          <p class="meta">Demo auth — password is always <code>123456</code>.</p>
+          <button type="submit" class="primary block">Sign in</button>
+          <p id="login-error" class="error"></p>
+        </form>
+      </div>
     </div>
   </div>
 
   <!-- APP SHELL -->
   <div id="view-app" class="view" style="display:none">
-    <nav class="topbar">
-      <div class="brand-sm"><span class="brand-mark small">V</span> VoxBox</div>
+    <aside class="sidebar">
+      <div class="sidebar-brand"><span class="brand-mark small">V</span><span>VoxBox</span></div>
+      <button id="sidebar-collapse-btn" class="ghost small icon-btn sidebar-collapse-btn" title="Collapse sidebar">&laquo;</button>
+      <div class="nav-section-label">Menu</div>
       <div class="nav-links" id="nav-links"></div>
-      <div class="nav-user">
-        <span id="nav-username"></span>
-        <button id="logout-btn" class="secondary small">Log out</button>
-      </div>
-    </nav>
-
-    <!-- RENTER: MY VOICES -->
-    <main class="page" id="page-my-voices">
-      <div class="page-head">
-        <h2>My Voices</h2>
-        <p class="meta">Voices you've rented. Click one to generate a script.</p>
-      </div>
-      <div id="my-voices-grid" class="grid"></div>
-
-      <!-- Generation panel for the selected voice -->
-      <div id="generate-panel" style="display:none">
-        <button id="back-to-my-voices" class="secondary small">&larr; Back to My Voices</button>
-        <div class="page-head">
-          <h3 id="generate-voice-title"></h3>
-          <p class="meta" id="generate-voice-price"></p>
+      <div class="sidebar-footer">
+        <div class="user-chip">
+          <div class="avatar" id="nav-avatar"></div>
+          <div class="who">
+            <div class="name" id="nav-username"></div>
+            <div class="role" id="nav-role"></div>
+          </div>
         </div>
-        <div class="two-col">
-          <div class="card">
-            <label for="rent-script">Script</label>
-            <div id="tag-palette" class="tag-palette"></div>
-            <textarea id="rent-script" rows="4" placeholder="Type the script you want this voice to read..."></textarea>
-            <p class="meta" id="script-cost-estimate"></p>
-            <button id="submit-rental-btn" class="primary">Submit for screening</button>
-            <p id="rental-status" class="meta"></p>
+        <button id="logout-btn" class="ghost small block">Log out</button>
+      </div>
+    </aside>
+
+    <div class="content">
+
+      <!-- RENTER: MY VOICES -->
+      <main class="page" id="page-my-voices">
+        <div class="page-head">
+          <div>
+            <h2>My Voices</h2>
+            <p class="meta">Voices you've rented. Click Generate to write a script.</p>
+          </div>
+        </div>
+        <div id="my-voices-grid" class="grid"></div>
+
+        <!-- Generation panel for the selected voice -->
+        <div id="generate-panel" style="display:none">
+          <button id="back-to-my-voices" class="ghost small">&larr; Back to My Voices</button>
+          <div class="page-head" style="margin-top: var(--sp-3)">
+            <div>
+              <h2 id="generate-voice-title"></h2>
+              <p class="meta" id="generate-voice-price"></p>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <label for="rent-script">Script</label>
+              <div id="tag-palette" class="tag-palette"></div>
+              <textarea id="rent-script" rows="5" placeholder="Type the script you want this voice to read..."></textarea>
+              <div class="cost-estimate">
+                <span class="cost-note" id="script-word-count">0 words</span>
+                <span class="cost-value" id="script-cost-value">$0.00</span>
+              </div>
+              <button id="submit-rental-btn" class="primary block">Submit for screening</button>
+              <p id="rental-status" class="meta"></p>
+            </div>
+            <div class="card">
+              <h3>Submissions for this voice</h3>
+              <ul id="rentals-list" class="list"></ul>
+            </div>
           </div>
           <div class="card">
-            <h3>Submissions for this voice</h3>
-            <ul id="rentals-list" class="list"></ul>
+            <h3>Generated outputs for this voice</h3>
+            <ul id="outputs-list" class="list"></ul>
+          </div>
+        </div>
+      </main>
+
+      <!-- RENTER: MARKETPLACE -->
+      <main class="page" id="page-marketplace">
+        <div class="page-head">
+          <div>
+            <h2>Marketplace</h2>
+            <p class="meta">Rent access to a voice, then generate scripts through it.</p>
+          </div>
+        </div>
+        <div id="marketplace-grid" class="grid"></div>
+      </main>
+
+      <!-- ACTOR: MY VOICES (published) -->
+      <main class="page" id="page-add-voice">
+        <div class="page-head">
+          <div>
+            <h2>My Voices</h2>
+            <p class="meta">Voices you've published for rent.</p>
+          </div>
+          <button id="open-add-voice-modal" class="primary">+ Add Voice</button>
+        </div>
+        <div id="voices-list" class="grid"></div>
+      </main>
+
+      <!-- ACTOR: DASHBOARD -->
+      <main class="page" id="page-dashboard">
+        <div class="page-head">
+          <div>
+            <h2>Dashboard</h2>
+            <p class="meta">Usage and earnings across your voices.</p>
+          </div>
+        </div>
+        <div class="stat-row" id="dashboard-stats"></div>
+        <div class="card">
+          <h3>Per-voice breakdown</h3>
+          <ul id="dashboard-list" class="list"></ul>
+        </div>
+      </main>
+
+      <!-- ACTOR: APPROVALS -->
+      <main class="page" id="page-approvals">
+        <div class="page-head">
+          <div>
+            <h2>Approvals</h2>
+            <p class="meta">Scripts flagged for manual review before generation.</p>
+          </div>
+          <div style="display:flex; gap: var(--sp-2); align-items:center">
+            <div class="popover-wrap">
+              <button id="approvals-filter-btn" class="secondary small">Filter: All voices</button>
+              <div id="approvals-filter-popover" class="popover"></div>
+            </div>
+            <button id="bulk-approve-btn" class="primary small" disabled>Approve selected</button>
+            <button id="bulk-deny-btn" class="danger small" disabled>Deny selected</button>
           </div>
         </div>
         <div class="card">
-          <h3>Generated outputs for this voice</h3>
-          <ul id="outputs-list" class="list"></ul>
+          <ul id="review-list" class="list"></ul>
         </div>
-      </div>
-    </main>
+      </main>
 
-    <!-- RENTER: MARKETPLACE -->
-    <main class="page" id="page-marketplace">
-      <div class="page-head">
-        <h2>Marketplace</h2>
-        <p class="meta">Rent access to a voice, then generate scripts through it.</p>
-      </div>
-      <div id="marketplace-grid" class="grid"></div>
-    </main>
-
-    <!-- ACTOR: ADD VOICE -->
-    <main class="page" id="page-add-voice">
-      <div class="page-head">
-        <h2>Add a voice</h2>
-        <p class="meta">Read the challenge phrase aloud to create a new cloneable voice.</p>
-      </div>
-      <div class="card">
-        <div class="phrase-box">
-          <p id="phrase-text">Loading phrase&hellip;</p>
-          <button id="new-phrase-btn" class="secondary small">New phrase</button>
-        </div>
-        <div class="record-controls">
-          <button id="record-btn" class="primary">Start recording</button>
-          <span id="record-status" class="meta"></span>
-        </div>
-        <audio id="preview-audio" controls style="display:none"></audio>
-        <div id="save-row" style="display:none">
-          <button id="redo-recording-btn" class="secondary small">Redo recording</button>
-          <label for="voice-label">Voice name</label>
-          <input id="voice-label" type="text" placeholder="e.g. Warm Narrator" />
-          <label for="voice-price">Price ($ per 100 words generated)</label>
-          <input id="voice-price" type="number" min="0" step="0.5" value="5" />
-          <label>Consent — approve this voice for:</label>
-          <div id="consent-checklist" class="tag-palette"></div>
-          <button id="save-voice-btn" class="primary">Publish voice</button>
-        </div>
-        <p id="record-error" class="error"></p>
-      </div>
-      <div class="card">
-        <h3>My published voices</h3>
-        <ul id="voices-list" class="list"></ul>
-      </div>
-    </main>
-
-    <!-- ACTOR: DASHBOARD -->
-    <main class="page" id="page-dashboard">
-      <div class="page-head">
-        <h2>Dashboard</h2>
-        <p class="meta">Usage and earnings across your voices.</p>
-      </div>
-      <div class="stat-row" id="dashboard-stats"></div>
-      <div class="card">
-        <h3>Per-voice breakdown</h3>
-        <ul id="dashboard-list" class="list"></ul>
-      </div>
-    </main>
-
-    <!-- ACTOR: APPROVALS -->
-    <main class="page" id="page-approvals">
-      <div class="page-head">
-        <h2>Approvals</h2>
-        <p class="meta">Scripts flagged for manual review before generation.</p>
-      </div>
-      <div class="card">
-        <ul id="review-list" class="list"></ul>
-      </div>
-    </main>
+    </div>
   </div>
+
+  <!-- ADD VOICE MODAL -->
+  <div id="add-voice-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Add a voice</h3>
+        <button class="icon-btn" id="close-add-voice-modal">&times;</button>
+      </div>
+      <p class="meta">Read the challenge phrase aloud to create a new cloneable voice.</p>
+      <div class="phrase-box" style="margin-top: var(--sp-4)">
+        <p id="phrase-text">Loading phrase&hellip;</p>
+        <button id="new-phrase-btn" class="secondary small">New phrase</button>
+      </div>
+      <div class="record-controls" style="margin-top: var(--sp-4)">
+        <button id="record-btn" class="primary">Start recording</button>
+        <span id="record-status" class="meta"></span>
+      </div>
+      <audio id="preview-audio" controls style="display:none; margin-top: var(--sp-3)"></audio>
+      <div id="save-row" style="display:none">
+        <button id="redo-recording-btn" class="secondary small" style="margin-top: var(--sp-3)">Redo recording</button>
+        <label for="voice-label">Voice name</label>
+        <input id="voice-label" type="text" placeholder="e.g. Warm Narrator" />
+        <label for="voice-price">Price ($ per 100 words generated)</label>
+        <input id="voice-price" type="number" min="0" step="0.5" value="5" />
+        <label>Consent — approve this voice for:</label>
+        <div id="consent-checklist" class="tag-palette"></div>
+        <button id="save-voice-btn" class="primary block" style="margin-top: var(--sp-4)">Publish voice</button>
+      </div>
+      <p id="record-error" class="error"></p>
+    </div>
+  </div>
+
+  <!-- RENT CONFIRMATION MODAL -->
+  <div id="rent-modal" class="modal-overlay">
+    <div class="modal">
+      <div class="modal-head">
+        <h3>Rent this voice?</h3>
+        <button class="icon-btn" id="close-rent-modal">&times;</button>
+      </div>
+      <div id="rent-modal-body"></div>
+      <button id="confirm-rent-btn" class="primary block" style="margin-top: var(--sp-5)">Confirm — unlock voice</button>
+      <p class="meta" style="margin-top: var(--sp-2)">Unlocking is free. You'll be billed per generation, based on script length.</p>
+    </div>
+  </div>
+
+  <div id="toast-stack"></div>
 
   <script src="app.js"></script>
 </body>

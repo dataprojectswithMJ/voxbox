@@ -13,3 +13,6 @@ data/*
 !data/.gitkeep
 
 recordings/
+
+mockup/
+busines/DESIGN_BRIEF.md
